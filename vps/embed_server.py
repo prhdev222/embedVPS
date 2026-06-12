@@ -25,6 +25,7 @@ INTERNAL_API_TOKEN = os.environ["INTERNAL_API_TOKEN"]
 OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
 EMBED_DIMENSIONS = int(os.getenv("EMBED_DIMENSIONS", "1536"))
 EMBED_BATCH_SIZE = int(os.getenv("EMBED_BATCH_SIZE", "32"))
+EMBED_CONCURRENCY = int(os.getenv("OPENAI_EMBED_CONCURRENCY", "3"))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "3500"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "400"))
 ALLOWED_COLLECTIONS = {
@@ -35,13 +36,14 @@ ALLOWED_COLLECTIONS = {
 POCKETBASE_URL = os.getenv("POCKETBASE_URL", "http://127.0.0.1:8090").rstrip("/")
 POCKETBASE_TOKEN = os.getenv("POCKETBASE_TOKEN", "").strip()
 
-openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=8)
 qdrant_client = AsyncQdrantClient(
     url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"),
     api_key=os.getenv("QDRANT_API_KEY"),
 )
 
 JOBS: dict[str, dict[str, Any]] = {}
+EMBED_SEMAPHORE = asyncio.Semaphore(EMBED_CONCURRENCY)
 
 
 class QueryRequest(BaseModel):
@@ -181,11 +183,12 @@ async def process_embed_job(job_id: str) -> None:
 
         for start in range(0, len(chunks), EMBED_BATCH_SIZE):
             batch = chunks[start : start + EMBED_BATCH_SIZE]
-            result = await openai_client.embeddings.create(
-                model=OPENAI_EMBED_MODEL,
-                input=[chunk.text for chunk in batch],
-                dimensions=EMBED_DIMENSIONS,
-            )
+            async with EMBED_SEMAPHORE:
+                result = await openai_client.embeddings.create(
+                    model=OPENAI_EMBED_MODEL,
+                    input=[chunk.text for chunk in batch],
+                    dimensions=EMBED_DIMENSIONS,
+                )
             points = [
                 PointStruct(
                     id=point_id(digest, chunk.page, chunk.index),
