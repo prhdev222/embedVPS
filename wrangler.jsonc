@@ -16,5 +16,8 @@
   ],
   "vars": {
     "VPS_API_URL": "https://embed-api.uraree.com"
-  }
+  },
+  "routes": [
+    { "pattern": "embed.uraree.com", "custom_domain": true }
+  ]
 }
