@@ -59,6 +59,7 @@ class EmbedJobRequest(BaseModel):
     collection: str
     mode: str = "text"
     document_type: str = Field(default="reference", max_length=60)
+    notify: bool = True
 
 
 def require_internal_token(authorization: str = Header(default="")) -> None:
@@ -177,6 +178,7 @@ async def embed_job(
         "chunks": 0,
         "total_chunks": 0,
         "error": "",
+        "notify": body.notify,
         "created_at": now_iso(),
         "time": "just now",
     }

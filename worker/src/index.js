@@ -95,6 +95,7 @@ async function upload(request, env) {
   const collection = String(form.get('collection') || '');
   const documentType = String(form.get('document_type') || 'reference');
   const mode = String(form.get('mode') || '');
+  const notify = String(form.get('notify') || 'true') === 'true';
 
   const allowedCollections = new Set(['medical_knowledge', 'law_lectures', 'dhamma_lectures']);
   const allowedDocumentTypes = new Set(['guideline', 'journal', 'medical_lecture', 'law_lecture', 'dhamma_lecture', 'reference']);
@@ -122,7 +123,7 @@ async function upload(request, env) {
 
     const response = await callVps(env, '/api/embed-job', {
       method: 'POST',
-      body: JSON.stringify({ id: jobId, filename: file.name, r2_key: r2Key, collection, document_type: documentType, mode }),
+      body: JSON.stringify({ id: jobId, filename: file.name, r2_key: r2Key, collection, document_type: documentType, mode, notify }),
     });
     if (!response.ok) {
       await env.ATTACHMENTS.delete(r2Key);

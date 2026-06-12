@@ -40,12 +40,13 @@ export const api = {
   jobs() {
     return request('/api/jobs');
   },
-  upload(files, collection, documentType, mode) {
+  upload(files, collection, documentType, mode, notify) {
     const body = new FormData();
     files.forEach(file => body.append('files', file));
     body.append('collection', collection);
     body.append('document_type', documentType);
     body.append('mode', mode);
+    body.append('notify', notify ? 'true' : 'false');
     return request('/api/upload', { method: 'POST', body });
   },
   query(query, collection) {

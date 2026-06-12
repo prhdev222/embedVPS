@@ -65,6 +65,7 @@ function Workspace({ user, onLogout }) {
   const [searching, setSearching] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState('');
+  const [notify, setNotify] = useState(true);
   const fileInput = useRef(null);
 
   useEffect(() => {
@@ -110,7 +111,7 @@ function Workspace({ user, onLogout }) {
       setUploading(true);
       setNotice('');
       try {
-        const data = await api.upload(files, collection, documentType, mode);
+        const data = await api.upload(files, collection, documentType, mode, notify);
         setJobs(current => [...(data.jobs || []), ...current]);
         setFiles([]);
         setJobFilter('all');
@@ -257,7 +258,7 @@ function Workspace({ user, onLogout }) {
           </div>
 
           <div className="submit-section">
-            <div className="telegram-note"><Icon name="telegram" size={18}/><span><strong>Telegram notification</strong><small>ระบบจะแจ้งเตือนเมื่อประมวลผลเสร็จ</small></span><span className="toggle-on"><span /></span></div>
+            <div className="telegram-note"><Icon name="telegram" size={18}/><span><strong>Telegram notification</strong><small>ระบบจะแจ้งเตือนเมื่อประมวลผลเสร็จ</small></span><button type="button" className={`toggle-switch ${notify ? 'toggle-on' : 'toggle-off'}`} role="switch" aria-checked={notify} aria-label="แจ้งเตือนผ่าน Telegram เมื่อประมวลผลเสร็จ" onClick={() => setNotify(current => !current)}><span /></button></div>
             <button className="primary-button" disabled={!files.length || uploading} onClick={startEmbedding}><span>{uploading ? 'กำลังอัปโหลด...' : `เริ่ม Embed ${files.length ? `${files.length} ไฟล์` : ''}`}</span><Icon name="arrow" size={18}/></button>
           </div>
         </section>
