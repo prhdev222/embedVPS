@@ -86,8 +86,8 @@ async function upload(request, env) {
   const documentType = String(form.get('document_type') || 'reference');
   const mode = String(form.get('mode') || '');
 
-  const allowedCollections = new Set(['medical_knowledge', 'law_lectures']);
-  const allowedDocumentTypes = new Set(['guideline', 'journal', 'medical_lecture', 'law_lecture', 'reference']);
+  const allowedCollections = new Set(['medical_knowledge', 'law_lectures', 'dhamma_lectures']);
+  const allowedDocumentTypes = new Set(['guideline', 'journal', 'medical_lecture', 'law_lecture', 'dhamma_lecture', 'reference']);
   if (!files.length || !allowedCollections.has(collection) || !allowedDocumentTypes.has(documentType) || mode !== 'text') {
     throw httpError(400, 'Invalid upload request');
   }

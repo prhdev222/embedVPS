@@ -6,6 +6,7 @@ import './styles.css';
 const collections = [
   { id: 'medical_knowledge', label: 'Medical knowledge' },
   { id: 'law_lectures', label: 'Law lectures' },
+  { id: 'dhamma_lectures', label: 'Dhamma lectures' },
 ];
 
 const documentTypes = [
@@ -13,6 +14,7 @@ const documentTypes = [
   { id: 'journal', label: 'Journal article', collection: 'medical_knowledge' },
   { id: 'medical_lecture', label: 'Medical lecture', collection: 'medical_knowledge' },
   { id: 'law_lecture', label: 'Law lecture', collection: 'law_lectures' },
+  { id: 'dhamma_lecture', label: 'Dhamma lecture', collection: 'dhamma_lectures' },
   { id: 'reference', label: 'Other reference', collection: null },
 ];
 
