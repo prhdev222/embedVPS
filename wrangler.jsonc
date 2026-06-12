@@ -11,7 +11,7 @@
   "r2_buckets": [
     {
       "binding": "ATTACHMENTS",
-      "bucket_name": "workspace-attachments"
+      "bucket_name": "medembed-attachments"
     }
   ],
   "vars": {
