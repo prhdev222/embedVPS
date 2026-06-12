@@ -29,9 +29,9 @@ const initialJobs = [
 ];
 
 const searchResults = [
-  { score: 0.94, source: 'ESC-Hypertension-Guideline-2024.pdf', page: 42, text: 'For most adults with hypertension, the recommended initial target is below 140/90 mmHg, with a lower target considered when treatment is well tolerated.' },
-  { score: 0.88, source: 'Thai-Clinical-Practice-Guidelines-DM.pdf', page: 117, text: 'Blood pressure should be assessed at every routine visit. Individual treatment goals should consider age, comorbidities, and risk of adverse effects.' },
-  { score: 0.81, source: 'Emergency-Care-Protocol.pdf', page: 19, text: 'Urgent evaluation is required for severe blood pressure elevation accompanied by signs of acute target-organ injury.' },
+  { id: 'mock-1', score: 0.94, source: 'ESC-Hypertension-Guideline-2024.pdf', page: 42, text: 'For most adults with hypertension, the recommended initial target is below 140/90 mmHg, with a lower target considered when treatment is well tolerated.' },
+  { id: 'mock-2', score: 0.88, source: 'Thai-Clinical-Practice-Guidelines-DM.pdf', page: 117, text: 'Blood pressure should be assessed at every routine visit. Individual treatment goals should consider age, comorbidities, and risk of adverse effects.' },
+  { id: 'mock-3', score: 0.81, source: 'Emergency-Care-Protocol.pdf', page: 19, text: 'Urgent evaluation is required for severe blood pressure elevation accompanied by signs of acute target-organ injury.' },
 ];
 
 function Icon({ name, size = 18 }) {
@@ -161,6 +161,17 @@ function Workspace({ user, onLogout }) {
     }
   }
 
+  async function deleteResult(result) {
+    if (!window.confirm(`ลบ chunk นี้ออกจาก "${collection}" ?\n\nไฟล์: ${result.source}\nหน้า: ${result.page}`)) return;
+    try {
+      await api.deletePoint(collection, result.id);
+      setResults(current => current.filter(item => item.id !== result.id));
+    } catch (error) {
+      if (error.status === 401) onLogout();
+      else setNotice(error.message || 'ลบไม่สำเร็จ');
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -283,7 +294,7 @@ function Workspace({ user, onLogout }) {
             <div className={`results-panel ${results.length ? 'has-results' : ''}`}>
               {searching && <div className="search-loading"><span /><p>กำลังค้นหา vector ที่ใกล้เคียง</p></div>}
               {!searching && !results.length && <div className="results-empty"><span><Icon name="search" size={24}/></span><strong>ผลลัพธ์จะแสดงที่นี่</strong><p>ลองถามคำถามเพื่อทดสอบคุณภาพ<br />ของข้อมูลใน collection</p></div>}
-              {!searching && results.length > 0 && <div className="results-list"><div className="results-header"><span>พบ {results.length} ผลลัพธ์</span><small>เรียงตาม similarity score</small></div>{results.map((result, index) => <article key={result.source + result.page}><div className="result-rank">{String(index + 1).padStart(2, '0')}</div><div><div className="result-source"><strong>{result.source}</strong><span>หน้า {result.page}</span></div><p>{result.text}</p></div><strong className="score">{result.score.toFixed(2)}</strong></article>)}</div>}
+              {!searching && results.length > 0 && <div className="results-list"><div className="results-header"><span>พบ {results.length} ผลลัพธ์</span><small>เรียงตาม similarity score</small></div>{results.map((result, index) => <article key={result.id || result.source + result.page}><div className="result-rank">{String(index + 1).padStart(2, '0')}</div><div><div className="result-source"><strong>{result.source}</strong><span>หน้า {result.page}</span></div><p>{result.text}</p></div><div className="result-meta"><strong className="score">{result.score.toFixed(2)}</strong><button type="button" className="result-delete" title="ลบ chunk นี้" aria-label="ลบ chunk นี้" onClick={() => deleteResult(result)}><Icon name="close" size={14}/></button></div></article>)}</div>}
             </div>
           </div>
         </section>

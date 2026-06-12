@@ -47,6 +47,11 @@ export default {
         return proxyToVps(request, env, '/api/query');
       }
 
+      if (url.pathname.startsWith('/api/points/') && request.method === 'DELETE') {
+        verifySameOrigin(request);
+        return proxyToVps(request, env, url.pathname);
+      }
+
       if (url.pathname === '/api/upload' && request.method === 'POST') {
         verifySameOrigin(request);
         return upload(request, env);

@@ -14,7 +14,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, st
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import Distance, PointIdsList, PointStruct, VectorParams
 
 from pipeline import chunk_pages, file_sha256, point_id
 
@@ -103,6 +103,7 @@ async def query(body: QueryRequest, _: None = Depends(require_internal_token)) -
     return {
         "results": [
             {
+                "id": str(point.id),
                 "score": point.score,
                 "source": payload_value(point.payload, "filename", "Unknown source"),
                 "page": payload_value(point.payload, "page", "-"),
@@ -112,6 +113,17 @@ async def query(body: QueryRequest, _: None = Depends(require_internal_token)) -
             for point in response.points
         ]
     }
+
+
+@app.delete("/api/points/{collection}/{point_id}")
+async def delete_point(
+    collection: str,
+    point_id: str,
+    _: None = Depends(require_internal_token),
+) -> dict[str, Any]:
+    validate_collection(collection)
+    await qdrant_client.delete(collection_name=collection, points_selector=PointIdsList(points=[point_id]))
+    return {"ok": True}
 
 
 @app.get("/api/jobs")

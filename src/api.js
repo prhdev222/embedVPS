@@ -51,4 +51,8 @@ export const api = {
   query(query, collection) {
     return request('/api/query', { method: 'POST', body: JSON.stringify({ query, collection, limit: 5 }) });
   },
+  deletePoint(collection, id) {
+    if (useMockApi) return Promise.resolve({ ok: true });
+    return request(`/api/points/${collection}/${id}`, { method: 'DELETE' });
+  },
 };
