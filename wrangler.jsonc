@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "medical-embed-workspace",
+  "main": "worker/src/index.js",
+  "compatibility_date": "2026-06-12",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "r2_buckets": [
+    {
+      "binding": "ATTACHMENTS",
+      "bucket_name": "workspace-attachments"
+    }
+  ],
+  "vars": {
+    "VPS_API_URL": "https://embed-api.uraree.com"
+  }
+}
