@@ -1,0 +1,18 @@
+services:
+  medembed:
+    build: ./vps
+    restart: unless-stopped
+    env_file:
+      - ./vps/.env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.medembed.rule=Host(`embed-api.uraree.com`)
+      - traefik.http.routers.medembed.entrypoints=websecure
+      - traefik.http.routers.medembed.tls.certresolver=letsencrypt
+      - traefik.http.services.medembed.loadbalancer.server.port=8788
+    networks:
+      - hermes-agent-iwpx_default
+
+networks:
+  hermes-agent-iwpx_default:
+    external: true
