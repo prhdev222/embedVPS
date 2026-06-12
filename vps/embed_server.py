@@ -35,6 +35,8 @@ ALLOWED_COLLECTIONS = {
 }
 POCKETBASE_URL = os.getenv("POCKETBASE_URL", "http://127.0.0.1:8090").rstrip("/")
 POCKETBASE_TOKEN = os.getenv("POCKETBASE_TOKEN", "").strip()
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
 openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=8)
 qdrant_client = AsyncQdrantClient(
@@ -236,6 +238,29 @@ async def process_embed_job(job_id: str) -> None:
         await update_job(job_id, status="done", chunks=len(chunks), progress=100)
     except Exception as error:
         await update_job(job_id, status="error", error=str(error)[:500])
+
+    if job.get("notify"):
+        if job["status"] == "done":
+            await send_telegram_notification(
+                f"✅ Embed เสร็จแล้ว\nไฟล์: {job['filename']}\nCollection: {job['collection']}\nChunks: {job['chunks']}"
+            )
+        else:
+            await send_telegram_notification(
+                f"❌ Embed ล้มเหลว\nไฟล์: {job['filename']}\nError: {job['error']}"
+            )
+
+
+async def send_telegram_notification(message: str) -> None:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={"chat_id": TELEGRAM_CHAT_ID, "text": message},
+            )
+    except httpx.HTTPError:
+        pass
 
 
 async def ensure_collection(collection: str) -> None:
