@@ -42,6 +42,11 @@ export default {
         return proxyToVps(request, env, url.pathname);
       }
 
+      if (url.pathname.startsWith('/api/jobs/') && request.method === 'DELETE') {
+        verifySameOrigin(request);
+        return proxyToVps(request, env, url.pathname);
+      }
+
       if (url.pathname === '/api/query' && request.method === 'POST') {
         verifySameOrigin(request);
         return proxyToVps(request, env, '/api/query');

@@ -172,6 +172,17 @@ function Workspace({ user, onLogout }) {
     }
   }
 
+  async function deleteJob(job) {
+    if (!window.confirm(`ลบงานนี้ออกจากคิวงาน?\n\n${job.filename}`)) return;
+    try {
+      await api.deleteJob(job.id);
+      setJobs(current => current.filter(item => item.id !== job.id));
+    } catch (error) {
+      if (error.status === 401) onLogout();
+      else setNotice(error.message || 'ลบไม่สำเร็จ');
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -273,7 +284,7 @@ function Workspace({ user, onLogout }) {
                   {job.status === 'done' && <span className="status-text done">{job.chunks} chunks · เสร็จแล้ว</span>}
                   {job.status === 'error' && <button className="retry-button">ลองใหม่</button>}
                 </div>
-                <button className="row-action" aria-label="Job details"><Icon name="chevron" size={17}/></button>
+                <button className="row-action" title="ลบจากคิวงาน" aria-label={`ลบ ${job.filename} จากคิวงาน`} onClick={() => deleteJob(job)}><Icon name="close" size={15}/></button>
               </article>)}
               {!visibleJobs.length && <div className="empty-state">ไม่มีงานในสถานะนี้</div>}
             </div>

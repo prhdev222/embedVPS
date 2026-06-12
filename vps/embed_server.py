@@ -144,6 +144,13 @@ async def job(job_id: str, _: None = Depends(require_internal_token)) -> dict[st
     raise HTTPException(status_code=404, detail="Job not found")
 
 
+@app.delete("/api/jobs/{job_id}")
+async def delete_job(job_id: str, _: None = Depends(require_internal_token)) -> dict[str, Any]:
+    JOBS.pop(job_id, None)
+    await pocketbase_request("DELETE", f"/api/collections/embed_jobs/records/{job_id}")
+    return {"ok": True}
+
+
 @app.post("/api/embed-job", status_code=202)
 async def embed_job(
     body: EmbedJobRequest,

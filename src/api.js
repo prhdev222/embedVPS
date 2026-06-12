@@ -55,4 +55,8 @@ export const api = {
     if (useMockApi) return Promise.resolve({ ok: true });
     return request(`/api/points/${collection}/${id}`, { method: 'DELETE' });
   },
+  deleteJob(jobId) {
+    if (useMockApi) return Promise.resolve({ ok: true });
+    return request(`/api/jobs/${jobId}`, { method: 'DELETE' });
+  },
 };
