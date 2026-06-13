@@ -201,6 +201,7 @@ async def process_embed_job(job_id: str) -> None:
         if not chunks:
             raise ValueError("No readable text found. Use an OCR workflow for scanned PDFs.")
 
+        job["first_point_id"] = str(point_id(digest, chunks[0].page, chunks[0].index))
         await ensure_collection(job["collection"])
         await update_job(job_id, total_chunks=len(chunks), progress=8)
 
@@ -248,6 +249,42 @@ async def process_embed_job(job_id: str) -> None:
             await send_telegram_notification(
                 f"❌ Embed ล้มเหลว\nไฟล์: {job['filename']}\nError: {job['error']}"
             )
+
+    if job["status"] == "done":
+        await create_brain_entry(job)
+
+
+BRAIN_DOMAIN_BY_COLLECTION = {
+    "medical_knowledge": "medical",
+    "law_lectures": "law",
+    "dhamma_lectures": "dhamma",
+}
+
+
+async def create_brain_entry(job: dict[str, Any]) -> None:
+    """Index a finished embed into the shared `brain` so all bots can find it."""
+    r2_key = job.get("r2_key", "")
+    existing = await pocketbase_request(
+        "GET",
+        "/api/collections/brain/records",
+        params={"filter": f'r2_key="{r2_key}"', "perPage": 1},
+    )
+    if existing and existing.get("totalItems", 0) > 0:
+        return
+    document_type = job.get("document_type", "")
+    payload = {
+        "title": job["filename"],
+        "summary": f"เอกสาร embed เข้า {job['collection']} ({job.get('chunks', 0)} chunks)",
+        "type": "paper" if document_type == "journal" else "reference",
+        "domain": BRAIN_DOMAIN_BY_COLLECTION.get(job["collection"], "general"),
+        "source_bot": "user",
+        "status": "processed",
+        "tags": [document_type] if document_type else [],
+        "qdrant_collection": job["collection"],
+        "qdrant_point_id": job.get("first_point_id", ""),
+        "r2_key": r2_key,
+    }
+    await pocketbase_request("POST", "/api/collections/brain/records", json=payload)
 
 
 async def send_telegram_notification(message: str) -> None:
